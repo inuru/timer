@@ -1,6 +1,6 @@
 {
-  "name": "CAP Capsa Timer",
-  "short_name": "Capsa Timer",
+  "name": "Simple Timer",
+  "short_name": "Simple Timer",
   "description": "A clean countdown timer with beep alerts",
   "start_url": "/timer/index.html",
   "scope": "/timer/",

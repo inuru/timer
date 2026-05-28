@@ -1,4 +1,4 @@
-# CAP Capsa Timer
+# Simple Timer
 
 A lightweight, installable countdown timer built as a Progressive Web App (PWA). No frameworks, no dependencies — pure HTML, CSS, and JavaScript.
 

@@ -1,4 +1,4 @@
-const CACHE = 'capsa-timer-v2';
+const CACHE = 'simple-timer-v2';
 const ASSETS = [
   '/timer/index.html',
   '/timer/manifest.json',
