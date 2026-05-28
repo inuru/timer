@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>CAP Capsa Timer</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a1a1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Capsa Timer">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f0e8;
+    --fg: #1a1a1a;
+    --accent: #c0392b;
+    --btn: #1a1a1a;
+    --btn-hover: #333;
+    --ring: #1a1a1a;
+    --time-color: #1a1a1a;
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg);
+    font-family: 'Share Tech Mono', monospace;
+    transition: background-color 0.6s ease;
+    overflow: hidden;
+    touch-action: manipulation;
+  }
+
+  body.alarm {
+    background-color: #c0392b;
+    animation: alarm-pulse 0.6s ease-in-out infinite alternate;
+  }
+
+  @keyframes alarm-pulse {
+    from { background-color: #c0392b; }
+    to   { background-color: #e74c3c; }
+  }
+
+  .input-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 48px;
+    opacity: 1;
+    transition: opacity 0.3s;
+  }
+
+  .input-section.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .input-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.15em;
+    color: var(--fg);
+    text-transform: uppercase;
+    transition: color 0.3s;
+  }
+
+  body.alarm .input-label { color: #fff; }
+
+  .sec-input {
+    width: 72px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--fg);
+    color: var(--fg);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.1rem;
+    text-align: center;
+    padding: 4px 6px;
+    outline: none;
+    transition: border-color 0.2s, color 0.3s;
+    -moz-appearance: textfield;
+  }
+
+  .sec-input::-webkit-inner-spin-button,
+  .sec-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .sec-input:focus { border-color: var(--accent); }
+
+  body.alarm .sec-input {
+    color: #fff;
+    border-bottom-color: rgba(255,255,255,0.7);
+  }
+
+  .center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .btn-wrap {
+    position: relative;
+    width: 80px;
+    height: 80px;
+  }
+
+  .btn-ring {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px solid var(--ring);
+    opacity: 0.25;
+    transition: opacity 0.3s, border-color 0.3s;
+  }
+
+  body.alarm .btn-ring { border-color: #fff; }
+
+  .start-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: none;
+    background: var(--btn);
+    color: #f5f0e8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+    position: relative;
+    z-index: 1;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .start-btn:hover {
+    background: var(--btn-hover);
+    transform: scale(1.06);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+  }
+
+  .start-btn:hover ~ .btn-ring { opacity: 0.55; }
+  .start-btn:active { transform: scale(0.97); }
+
+  body.alarm .start-btn {
+    background: #fff;
+    color: var(--accent);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  }
+
+  .start-btn svg { pointer-events: none; }
+
+  .time-display {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 18vw, 8rem);
+    letter-spacing: 0.06em;
+    color: var(--time-color);
+    line-height: 1;
+    transition: color 0.3s;
+    text-shadow: 0 2px 0 rgba(0,0,0,0.08);
+    user-select: none;
+  }
+
+  body.alarm .time-display { color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,0.2); }
+
+  .time-display.warn { animation: warn-tick 1s step-end infinite; }
+
+  @keyframes warn-tick {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.55; }
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,0.018) 3px,
+      rgba(0,0,0,0.018) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* Install prompt banner */
+  #installBanner {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    color: #f5f0e8;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    padding: 10px 20px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    z-index: 1000;
+    animation: fadeup 0.4s ease forwards;
+  }
+
+  #installBanner.show { display: flex; }
+
+  @keyframes fadeup {
+    from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  #installBanner .close-x {
+    opacity: 0.5;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="input-section" id="inputSection">
+  <span class="input-label">Set</span>
+  <input type="number" class="sec-input" id="secInput" value="30" min="1" max="5999">
+  <span class="input-label">sec</span>
+</div>
+
+<div class="center">
+  <div class="btn-wrap">
+    <button class="start-btn" id="startBtn" aria-label="Start timer">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8 5.14v14l11-7-11-7z"/>
+      </svg>
+    </button>
+    <div class="btn-ring"></div>
+  </div>
+  <div class="time-display" id="timeDisplay">00:30</div>
+</div>
+
+<!-- Install to home screen banner -->
+<div id="installBanner">
+  ⬇ Add to Home Screen
+  <span class="close-x" id="closeBanner">✕</span>
+</div>
+
+<script>
+  // ── PWA: Service Worker ────────────────────────────────
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+
+  // ── PWA: Install prompt ────────────────────────────────
+  let deferredPrompt = null;
+  const installBanner = document.getElementById('installBanner');
+  const closeBanner   = document.getElementById('closeBanner');
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBanner.classList.add('show');
+  });
+
+  installBanner.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installBanner.classList.remove('show');
+  });
+
+  closeBanner.addEventListener('click', e => {
+    e.stopPropagation();
+    installBanner.classList.remove('show');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    installBanner.classList.remove('show');
+  });
+
+  // ── Timer ──────────────────────────────────────────────
+  const startBtn     = document.getElementById('startBtn');
+  const timeDisplay  = document.getElementById('timeDisplay');
+  const secInput     = document.getElementById('secInput');
+  const inputSection = document.getElementById('inputSection');
+  const body         = document.body;
+
+  let total     = 30;
+  let remaining = 30;
+  let running   = false;
+  let interval  = null;
+  let audioCtx  = null;
+
+  function fmt(s) {
+    const m = Math.floor(s / 60).toString().padStart(2, '0');
+    const sec = (s % 60).toString().padStart(2, '0');
+    return `${m}:${sec}`;
+  }
+
+  function getCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
+  function beep(startTime, duration, freq = 880, type = 'sine') {
+    const ctx  = getCtx();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(0.35, startTime + 0.01);
+    gain.gain.setValueAtTime(0.35, startTime + duration - 0.02);
+    gain.gain.linearRampToValueAtTime(0, startTime + duration);
+    osc.start(startTime);
+    osc.stop(startTime + duration);
+  }
+
+  function playCountdownSequence() {
+    const ctx      = getCtx();
+    const now      = ctx.currentTime;
+    const shortDur = 0.18;
+    const gap      = 0.45;
+    for (let i = 0; i < 4; i++) beep(now + i * gap, shortDur, 880, 'sine');
+    beep(now + 4 * gap, 1.0, 880, 'sine');
+  }
+
+  const tickPlayed = {};
+
+  function maybeBeep(s) {
+    if (s > 0 && s <= 5 && !tickPlayed[s]) {
+      tickPlayed[s] = true;
+      if (s === 1) playCountdownSequence();
+      else beep(getCtx().currentTime, 0.18, 880, 'sine');
+    }
+  }
+
+  function tick() {
+    remaining--;
+    timeDisplay.textContent = fmt(remaining);
+    maybeBeep(remaining);
+    if (remaining <= 5 && remaining > 0) timeDisplay.classList.add('warn');
+    if (remaining <= 0) {
+      clearInterval(interval);
+      running = false;
+      body.classList.add('alarm');
+      timeDisplay.classList.remove('warn');
+      setIcon('play');
+    }
+  }
+
+  function startTimer() {
+    body.classList.remove('alarm');
+    timeDisplay.classList.remove('warn');
+    Object.keys(tickPlayed).forEach(k => delete tickPlayed[k]);
+    total     = Math.max(1, parseInt(secInput.value) || 30);
+    remaining = total;
+    timeDisplay.textContent = fmt(remaining);
+    inputSection.classList.add('hidden');
+    running  = true;
+    interval = setInterval(tick, 1000);
+    setIcon('pause');
+  }
+
+  startBtn.addEventListener('click', () => {
+    if (running) clearInterval(interval);
+    running = false;
+    startTimer();
+  });
+
+  secInput.addEventListener('input', () => {
+    if (!running) {
+      const v = Math.max(1, parseInt(secInput.value) || 0);
+      timeDisplay.textContent = fmt(v);
+    }
+  });
+
+  const ICONS = {
+    play:  `<path d="M8 5.14v14l11-7-11-7z"/>`,
+    pause: `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`,
+  };
+
+  function setIcon(name) {
+    startBtn.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">${ICONS[name]}</svg>`;
+  }
+
+  timeDisplay.textContent = fmt(parseInt(secInput.value) || 30);
+</script>
+</body>
+</html>
