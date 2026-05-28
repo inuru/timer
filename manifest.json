@@ -2,7 +2,7 @@
   "name": "CAP Capsa Timer",
   "short_name": "Capsa Timer",
   "description": "A clean countdown timer with beep alerts",
-  "start_url": "./index.html",
+  "start_url": "/timer/index.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f5f0e8",
